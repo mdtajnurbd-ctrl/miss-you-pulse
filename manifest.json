@@ -1,0 +1,25 @@
+{
+  "name": "Miss You Pulse",
+  "short_name": "MissYou ❤️",
+  "description": "দূরে থেকেও স্মরণের লাইভ কাউন্টার ও নোটিফিকেশন অ্যাপ",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b0b2e",
+  "theme_color": "#ff4d79",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='44' fill='%231b0b2e'/><text x='50%' y='56%' dominant-baseline='middle' text-anchor='middle' font-size='105'>💖</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='116' fill='%231b0b2e'/><text x='50%' y='56%' dominant-baseline='middle' text-anchor='middle' font-size='280'>💖</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
