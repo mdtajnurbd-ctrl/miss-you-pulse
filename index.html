@@ -18,7 +18,7 @@
     }
     .card {
       width: 100%;
-      max-width: 400px;
+      max-width: 410px;
       background: rgba(255, 255, 255, 0.12);
       border: 1px solid rgba(255, 255, 255, 0.25);
       border-radius: 28px;
@@ -51,6 +51,7 @@
       align-items: center;
       margin: 14px 0 20px;
       font-size: 14px;
+      gap: 8px;
     }
     .stats {
       display: grid;
@@ -88,6 +89,7 @@
       border-radius: 14px;
       font-size: 13px;
       color: #f3d5de;
+      line-height: 1.45;
     }
     .modal {
       display: none;
@@ -102,7 +104,9 @@
     .modal.show { display: flex; }
     .modal-box {
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
+      max-height: 88vh;
+      overflow-y: auto;
       background: #240b42;
       border: 1px solid rgba(255,255,255,0.25);
       border-radius: 22px;
@@ -110,7 +114,7 @@
       text-align: left;
     }
     .modal-box h3 { margin-bottom: 12px; font-size: 18px; }
-    .modal-box label { display: block; font-size: 13px; margin-bottom: 4px; color: #ddd; }
+    .modal-box label { display: block; font-size: 12.5px; margin-bottom: 4px; color: #e2d4f0; }
     .modal-box input {
       width: 100%;
       padding: 10px;
@@ -119,9 +123,9 @@
       background: rgba(255,255,255,0.12);
       color: #fff;
       font-size: 14px;
-      margin-bottom: 12px;
+      margin-bottom: 11px;
     }
-    .modal-btns { display: flex; gap: 10px; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
     .save-btn {
       flex: 1;
       background: #ff4d79;
@@ -137,7 +141,7 @@
 <body>
   <div class="card">
     <div class="top">
-      <span id="statusText" style="font-size:13px; color:#86efac;">● সচল আছে</span>
+      <span id="statusText" style="font-size:13px; color:#86efac;">● সেভ মোড চালু</span>
       <div>
         <button type="button" class="btn" onclick="askNotify()">🔔 অ্যালার্ট</button>
         <button type="button" class="btn" onclick="openModal('settingsModal')">⚙️</button>
@@ -159,7 +163,7 @@
         <div style="font-size:12px; color:#ffd166;">বার ❤️</div>
       </div>
       <div class="stat">
-        <div id="partnerLabel" style="font-size:12px; color:#e5d4f7;">hasi</div>
+        <div id="partnerLabel" style="font-size:12px; color:#e5d4f7;">আজ hasi</div>
         <div id="partnerNum" class="num">0</div>
         <div style="font-size:12px; color:#ffd166;">বার 💕</div>
       </div>
@@ -178,9 +182,9 @@
     <div class="modal-box">
       <h3>ইউজারনেম বদলান</h3>
       <label>আমার নাম / ইউজারনেম</label>
-      <input type="text" id="inMyName" value="আমি" />
+      <input type="text" id="inMyName" />
       <label>প্রিয়জনের নাম / ইউজারনেম</label>
-      <input type="text" id="inPartnerName" value="hasi" />
+      <input type="text" id="inPartnerName" />
       <div class="modal-btns">
         <button type="button" class="btn" onclick="closeModal('profileModal')">বন্ধ</button>
         <button type="button" class="save-btn" onclick="saveNames()">সেভ করুন</button>
@@ -196,6 +200,14 @@
       <input type="text" id="inDbUrl" placeholder="https://...firebaseio.com" />
       <label>API Key</label>
       <input type="text" id="inApiKey" placeholder="AIza..." />
+      <label>Project ID</label>
+      <input type="text" id="inProjectId" placeholder="your-project-id" />
+      <label>Messaging Sender ID</label>
+      <input type="text" id="inSenderId" placeholder="1234567890" />
+      <label>App ID</label>
+      <input type="text" id="inAppId" placeholder="1:1234567890:web:..." />
+      <label>VAPID Key</label>
+      <input type="text" id="inVapidKey" placeholder="BEl62iUYg..." />
       <div class="modal-btns">
         <button type="button" class="btn" onclick="closeModal('settingsModal')">বন্ধ</button>
         <button type="button" class="save-btn" onclick="saveConfig()">সেভ করুন</button>
@@ -204,14 +216,61 @@
   </div>
 
   <script>
-    var appState = {
+    var STORAGE_KEY = "miss_you_pulse_saved_v1";
+
+    function getTodayDateStr() {
+      var d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+
+    var defaultState = {
+      dateStr: getTodayDateStr(),
       myName: "আমি",
       partnerName: "hasi",
       myCount: 0,
       partnerCount: 0,
-      dbUrl: "",
-      apiKey: ""
+      lastMsg: "এখনও কোনো সিগন্যাল পাঠানো হয়নি ✨",
+      config: {
+        dbUrl: "",
+        apiKey: "",
+        projectId: "",
+        senderId: "",
+        appId: "",
+        vapidKey: ""
+      }
     };
+
+    var appState = JSON.parse(JSON.stringify(defaultState));
+
+    function loadSavedState() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          appState.myName = parsed.myName || "আমি";
+          appState.partnerName = parsed.partnerName || "hasi";
+          appState.lastMsg = parsed.lastMsg || defaultState.lastMsg;
+          appState.config = Object.assign({}, defaultState.config, parsed.config || {});
+
+          if (parsed.dateStr === getTodayDateStr()) {
+            appState.myCount = Number(parsed.myCount || 0);
+            appState.partnerCount = Number(parsed.partnerCount || 0);
+          } else {
+            appState.dateStr = getTodayDateStr();
+            appState.myCount = 0;
+            appState.partnerCount = 0;
+          }
+        }
+      } catch (e) {}
+      persistState();
+    }
+
+    function persistState() {
+      appState.dateStr = getTodayDateStr();
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {}
+    }
 
     function refreshUI() {
       document.getElementById("pairText").textContent = appState.myName + " ❤️ " + appState.partnerName;
@@ -219,13 +278,27 @@
       document.getElementById("partnerLabel").textContent = "আজ " + appState.partnerName;
       document.getElementById("myNum").textContent = appState.myCount;
       document.getElementById("partnerNum").textContent = appState.partnerCount;
+      document.getElementById("lastMsg").textContent = appState.lastMsg;
+
+      var statusEl = document.getElementById("statusText");
+      if (appState.config.dbUrl) {
+        statusEl.textContent = "● Firebase যুক্ত";
+        statusEl.style.color = "#86efac";
+      } else {
+        statusEl.textContent = "● ফোনে সেভ হচ্ছে";
+        statusEl.style.color = "#fde047";
+      }
     }
 
     function openModal(id) {
       document.getElementById("inMyName").value = appState.myName;
       document.getElementById("inPartnerName").value = appState.partnerName;
-      document.getElementById("inDbUrl").value = appState.dbUrl;
-      document.getElementById("inApiKey").value = appState.apiKey;
+      document.getElementById("inDbUrl").value = appState.config.dbUrl || "";
+      document.getElementById("inApiKey").value = appState.config.apiKey || "";
+      document.getElementById("inProjectId").value = appState.config.projectId || "";
+      document.getElementById("inSenderId").value = appState.config.senderId || "";
+      document.getElementById("inAppId").value = appState.config.appId || "";
+      document.getElementById("inVapidKey").value = appState.config.vapidKey || "";
       document.getElementById(id).classList.add("show");
     }
 
@@ -238,34 +311,54 @@
       var p = document.getElementById("inPartnerName").value.trim();
       if (m) appState.myName = m;
       if (p) appState.partnerName = p;
+      appState.lastMsg = "প্রোফাইল সেভ হয়েছে: " + appState.myName + " ❤️ " + appState.partnerName;
+      persistState();
       refreshUI();
       closeModal("profileModal");
-      document.getElementById("lastMsg").textContent = "প্রোফাইল আপডেট হয়েছে: " + appState.myName + " ❤️ " + appState.partnerName;
     }
 
     function saveConfig() {
-      appState.dbUrl = document.getElementById("inDbUrl").value.trim();
-      appState.apiKey = document.getElementById("inApiKey").value.trim();
+      appState.config = {
+        dbUrl: document.getElementById("inDbUrl").value.trim(),
+        apiKey: document.getElementById("inApiKey").value.trim(),
+        projectId: document.getElementById("inProjectId").value.trim(),
+        senderId: document.getElementById("inSenderId").value.trim(),
+        appId: document.getElementById("inAppId").value.trim(),
+        vapidKey: document.getElementById("inVapidKey").value.trim()
+      };
+      appState.lastMsg = "Firebase সেটিংস ফোনে সেভ করা হয়েছে ✅";
+      persistState();
+      refreshUI();
       closeModal("settingsModal");
-      document.getElementById("lastMsg").textContent = "সেটিংস সেভ করা হয়েছে ✅";
     }
 
     function addCount() {
-      appState.myCount = appState.myCount + 1;
-      refreshUI();
+      appState.myCount = Number(appState.myCount || 0) + 1;
       var nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      document.getElementById("lastMsg").textContent = appState.myName + " স্মরণ করেছেন (" + nowTime + ") ❤️";
+      appState.lastMsg = appState.myName + " স্মরণ করেছেন (" + nowTime + ") ❤️";
+      persistState();
+      refreshUI();
 
-      if (appState.dbUrl) {
-        var cleanUrl = appState.dbUrl.replace(/\/+$/, "");
-        fetch(cleanUrl + "/pulses.json", {
+      if (appState.config.dbUrl) {
+        var cleanUrl = appState.config.dbUrl.replace(/\/+$/, "");
+        var roomKey = encodeURIComponent([appState.myName.toLowerCase(), appState.partnerName.toLowerCase()].sort().join("__"));
+        var dayKey = getTodayDateStr();
+
+        fetch(cleanUrl + "/rooms/" + roomKey + "/dailyStats/" + dayKey + "/counts/" + encodeURIComponent(appState.myName.toLowerCase()) + ".json", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(appState.myCount)
+        }).catch(function () {});
+
+        fetch(cleanUrl + "/notificationQueue.json", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            from: appState.myName,
-            to: appState.partnerName,
-            count: appState.myCount,
-            time: nowTime
+            toUser: appState.partnerName.toLowerCase(),
+            fromUser: appState.myName,
+            title: "দূরে থেকেও কাছে ❤️",
+            body: appState.myName + " এই মুহূর্তে আপনাকে খুব স্মরণ করছেন!",
+            createdAt: Date.now()
           })
         }).catch(function () {});
       }
@@ -273,7 +366,9 @@
 
     function askNotify() {
       if (!("Notification" in window)) {
-        document.getElementById("lastMsg").textContent = "এই ব্রাউজারে নোটিফিকেশন সাপোর্ট নেই।";
+        appState.lastMsg = "এই ব্রাউজারে নোটিফিকেশন সাপোর্ট নেই।";
+        persistState();
+        refreshUI();
         return;
       }
       Notification.requestPermission().then(function (perm) {
@@ -281,13 +376,16 @@
           new Notification("দূরে থেকেও কাছে ❤️", {
             body: appState.partnerName + "-এর জন্য নোটিফিকেশন অ্যালার্ট চালু হয়েছে!"
           });
-          document.getElementById("lastMsg").textContent = "নোটিফিকেশন অ্যালার্ট চালু হয়েছে 🔔";
+          appState.lastMsg = "নোটিফিকেশন অ্যালার্ট চালু হয়েছে 🔔";
         } else {
-          document.getElementById("lastMsg").textContent = "নোটিফিকেশন অনুমতি দেওয়া হয়নি।";
+          appState.lastMsg = "নোটিফিকেশন অনুমতি দেওয়া হয়নি।";
         }
+        persistState();
+        refreshUI();
       });
     }
 
+    loadSavedState();
     refreshUI();
   </script>
 </body>
