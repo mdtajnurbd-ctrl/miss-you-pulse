@@ -6,14 +6,14 @@ import { getAnalytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+firebaseConfig = {
   apiKey: "AIzaSyBDlYHRIKJ_tx1g-PgV8MdBnbyspjmoZqY",
   authDomain: "miss-you-pulse-db.firebaseapp.com",
   databaseURL: "https://miss-you-pulse-db-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "miss-you-pulse-db",
   storageBucket: "miss-you-pulse-db.firebasestorage.app",
   messagingSenderId: "447203090073",
-  appId: "",
+  appId: "1:447203090073:web:2fd23f2c21e26d3c60e208",
   measurementId: "G-8J50MX9JDM"
 };
 
