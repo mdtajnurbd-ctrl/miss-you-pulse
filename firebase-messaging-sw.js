@@ -13,7 +13,7 @@ const firebaseConfig = {
   projectId: "miss-you-pulse-db",
   storageBucket: "miss-you-pulse-db.firebasestorage.app",
   messagingSenderId: "447203090073",
-  appId: "1:447203090073:web:2fd23f2c21e26d3c60e208",
+  appId: "",
   measurementId: "G-8J50MX9JDM"
 };
 
